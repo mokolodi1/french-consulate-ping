@@ -36,12 +36,15 @@ log_prefix = datetime.now().strftime("%I:%M %p on %B %d, %Y") + "  :  "
 
 if (before_day - earliest_date).days >= 0:
     new_date_description = earliest_date.strftime(month_day_year)
-    print log_prefix + "Found something on " + new_date_description
+    log_prefix += "Found something on " + new_date_description + ". "
 
     # Oh boy! Email him immediately!
     # (but only if we haven't emailed him before...)
     sent_email_path = "/tmp/have_sent_email"
-    if not os.path.isfile(sent_email_path):
+    if os.path.isfile(sent_email_path):
+        print log_prefix + "Already sent an email so hold off..."
+    else:
+        print log_prefix + "Sending an email now!"
         from_address = ""
         to_address  = ""
         email_password = ""
