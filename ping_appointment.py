@@ -41,40 +41,39 @@ if (before_day - earliest_date).days >= 0:
     # Oh boy! Email him immediately!
     # (but only if we haven't emailed him before...)
     sent_email_path = "/tmp/have_sent_email"
-    os.path.isfile(sent_email_path)
+    if not os.path.isfile(sent_email_path):
+        from_address = ""
+        to_address  = ""
+        email_password = ""
 
-    from_address = ""
-    to_address  = ""
-    email_password = ""
+        # I could make a file type with these as three lines but I already made
+        # the README so deal with it.
+        with open("/tmp/from_address.txt", "r") as secret_file:
+            from_address = secret_file.readlines()[0].strip()
+        with open("/tmp/to_address.txt", "r") as secret_file:
+            to_address = secret_file.readlines()[0].strip()
+        with open("/tmp/email_password.txt", "r") as secret_file:
+            email_password = secret_file.readlines()[0].strip()
 
-    # I could make a file type with these as three lines but I already made
-    # the README so deal with it.
-    with open("/tmp/from_address.txt", "r") as secret_file:
-        from_address = secret_file.readlines()[0].strip()
-    with open("/tmp/to_address.txt", "r") as secret_file:
-        to_address = secret_file.readlines()[0].strip()
-    with open("/tmp/email_password.txt", "r") as secret_file:
-        email_password = secret_file.readlines()[0].strip()
+        email_message = "\r\n".join([
+          "From: " + from_address,
+          "To: " + to_address,
+          "Subject: New French Consulate appointment available!",
+          "",
+          "It's on " + new_date_description,
+          "",
+          "Click here to book " +
+          "https://pastel.diplomatie.gouv.fr/rdvinternet/html-3.04.03/frameset/frameset.html?lcid=1&sgid=260&suid=1",
+        ])
 
-    email_message = "\r\n".join([
-      "From: " + from_address,
-      "To: " + to_address,
-      "Subject: New French Consulate appointment available!",
-      "",
-      "It's on " + new_date_description,
-      "",
-      "Click here to book " +
-      "https://pastel.diplomatie.gouv.fr/rdvinternet/html-3.04.03/frameset/frameset.html?lcid=1&sgid=260&suid=1",
-    ])
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login(from_address, email_password)
+        server.sendmail(from_address, to_address, email_message)
+        server.quit()
 
-    server = smtplib.SMTP('smtp.gmail.com:587')
-    server.ehlo()
-    server.starttls()
-    server.login(from_address, email_password)
-    server.sendmail(from_address, to_address, email_message)
-    server.quit()
-
-    # write to a temp file so we don't send 5000 emails
-    open(sent_email_path, 'a').close()
+        # write to a temp file so we don't send 5000 emails
+        open(sent_email_path, 'a').close()
 else:
     print log_prefix + "Nothing before " + before_day.strftime(month_day_year)
